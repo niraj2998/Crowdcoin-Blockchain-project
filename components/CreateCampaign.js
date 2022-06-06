@@ -1,23 +1,45 @@
-import { Button, Checkbox, Form, Input } from "semantic-ui-react";
+import { Button, Form, Input, Message } from "semantic-ui-react";
 import { useState } from "react";
 import factory from "../ethereum/factory";
 import web3 from "../ethereum/web3";
+import {useRouter} from "next/router"
 
 const CreateCampaign = () => {
-  const [minimumContribution, setMinimumContribution] = useState("");
+  const [fields, setFields] = useState({
+    minimumContribution: "",
+    errorMessage: "",
+    loading: false
+  });
+  // const [errorMessage, setErrorMessage] = useState("");
+
+  const router = useRouter();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const accounts = await web3.eth.getAccounts();
-    await factory.methods.createCampaign(minimumContribution).send({
-      from: accounts[0],
+    setFields((prev) => {
+      return {...prev, loading: true, errorMessage: ""}
     });
+    try{
+      const accounts = await web3.eth.getAccounts();
+      await factory.methods.createCampaign(fields.minimumContribution).send({
+        from: accounts[0],
+      });
+      router.push('/');
+    }
+    catch (err){
+      setFields((prev) => {
+        return {...prev, errorMessage:`Error: ${err.message}`};
+      })
+    }
+    setFields(prev => {
+      return {...prev, loading: false}
+    })
   };
 
   return (
     <>
       <h2 style={{ margin: "30px 0" }}>Create a Campaign</h2>
-      <Form size="big" onSubmit={handleSubmit}>
+      <Form size="big" onSubmit={handleSubmit} error={!!fields.errorMessage}>
         <Form.Field>
           <label style={{ margin: "10px 0" }}>
             Minimum Contribution{" "}
@@ -28,15 +50,18 @@ const CreateCampaign = () => {
             </span>
           </label>
           <Input
-            value={minimumContribution}
+            value={fields.minimumContribution}
             onChange={(event) => {
-              setMinimumContribution(event.target.value);
+              setFields((prev) => {
+                return {...prev, minimumContribution:`${event.target.value}`};
+              });
             }}
             label="wei"
             labelPosition="right"
           />
         </Form.Field>
-        <Button size="medium" primary>
+        <Message error header="Oops!" content={fields.errorMessage} />
+        <Button loading={fields.loading}  size="medium" primary>
           Create!
         </Button>
       </Form>

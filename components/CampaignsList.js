@@ -1,14 +1,19 @@
 import { Card } from "semantic-ui-react";
 import { Button } from "semantic-ui-react";
 import React from "react";
+import { useRouter } from "next/router";
+import Link from 'next/link'
 
 const CampaignList = ({ campaigns }) => {
   console.log(campaigns);
+
+  const router = useRouter();
+
   const renderCampaigns = () => {
     const items = campaigns.map((address) => {
       return {
         header: address,
-        description: <a>View Campaign</a>,
+        description: <Link href={`/campaigns/${address}`}><a> View Campaign </a></Link> ,
         fluid: true,
       };
     });
@@ -22,6 +27,9 @@ const CampaignList = ({ campaigns }) => {
         floated="right"
         content="Create Campaign"
         icon="add circle"
+        onClick={() => {
+          router.push("/campaigns/new");
+        }}
         primary
       />
       {renderCampaigns()}
