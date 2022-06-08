@@ -1,0 +1,15 @@
+
+
+/* body {
+    margin: 0 ;
+    font-size: 1rem;
+} */
+
+.header{
+    margin-left: 64px;
+}
+
+.container{
+    display: flex !important;
+    font-size: 0.9rem;
+}
