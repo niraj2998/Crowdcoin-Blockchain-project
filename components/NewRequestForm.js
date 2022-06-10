@@ -3,6 +3,7 @@ import Campaign from "../ethereum/campaign";
 import web3 from "../ethereum/web3";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import Link from 'next/link'
 
 const NewRequestForm = () => {
   const [data, setData] = useState({
@@ -11,11 +12,17 @@ const NewRequestForm = () => {
     recipient: "",
   });
 
+  const [fields, setFields] = useState({
+    errorMessage: "",
+    loading: false,
+  });
+
   const router = useRouter();
   const { address } = router.query;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setFields({ loading: true, errorMessage: "" });
     const campaign = Campaign(address);
     const { description, expense, recipient } = data;
     try {
@@ -29,13 +36,25 @@ const NewRequestForm = () => {
         .send({
           from: accounts[0],
         });
-    } catch (error) {}
+        router.push(`/campaigns/${address}/requests`)
+    } 
+    catch (error) {
+      setFields((prev) => {
+        return { ...prev, errorMessage: `${error.message}` };
+      });
+    }
+    setFields((prev) => {
+      return { ...prev, loading: false };
+    });
   };
 
   return (
     <>
-      <h1>Create a Request</h1>
-      <Form onSubmit={handleSubmit}>
+      <Link href={`/campaigns/${address}/requests`}><a>
+        Back
+        </a></Link>
+      <h3>Create a Request</h3>
+      <Form onSubmit={handleSubmit} error={!!fields.errorMessage}>
         <Form.Field>
           <label>Description</label>
           <Input
@@ -69,7 +88,10 @@ const NewRequestForm = () => {
             }}
           />
         </Form.Field>
-        <Button color="blue">Create</Button>
+        <Message error header="Oops!" content={`${fields.errorMessage}`} />
+        <Button loading={fields.loading} color="blue">
+          Create
+        </Button>
       </Form>
     </>
   );
